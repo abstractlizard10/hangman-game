@@ -320,6 +320,7 @@ document.addEventListener("keydown", function(event) {
     }
 
 function startGame() {
+  ctx.clearRect(0, 0, hangmanCanvas.width, hangmanCanvas.height);
   messageDiv.textContent = "";
   chosenWord = words[Math.floor(Math.random() * words.length)].toUpperCase();
   guessedWord = Array(chosenWord.length).fill("_");
