@@ -118,6 +118,8 @@
   <div class="alphabet" id="alphabet" style="display: none;"></div>
   <div id="message"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+
   <script>
     const words = [  "witch", "pumpkin", "vampire", "frankenstein", "monster", "ghost", "blood", 
   "dracula", "zombie", "skeleton", "haunted", "mummy", "bat", "cobweb", 
@@ -220,6 +222,12 @@
     function checkGameState() {
       if (guessedWord.join("") === chosenWord) {
         messageDiv.textContent = "Congratulations! You won!";
+            // Trigger confetti on win
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { x: 0.5, y: 0.5 }
+    });
         disableAlphabet();
       } else if (lives === 0) {
         messageDiv.textContent = `Game Over! The word was "${chosenWord}".`;
