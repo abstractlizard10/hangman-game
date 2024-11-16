@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hangman Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+      font-size: 1.1rem;
+    }
+    .word {
+      font-size: 2rem;
+      letter-spacing: 1rem;
+      margin: 20px 0;
+    }
+.alphabet {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.letter {
+  margin: 5px;
+  font-size: 1.5rem;
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 50px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  opacity: 1; /* Ensure buttons are visible when not disabled */
+}
+
+    .letter.correct {
+      background-color: #4CAF50;
+      color: white;
+      cursor: not-allowed;
+    }
+    .letter.wrong {
+      background-color: #F44336;
+      color: white;
+      cursor: not-allowed;
+    }
+    #hangman {
+      margin: 20px auto;
+      border: 1px solid #000;
+      display: block;
+    }
+    #message {
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+    #instructions {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+    #start-button {
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      touch-action: manipulation; /* For better touch responsiveness */
+    }
+    #start-button:active {
+      background-color: #0056b3;
+    }
+    #lives {
+      margin-top: 10px;
+      font-size: 1.2rem;
+    }
+
+    /* Responsive Layout */
+    @media (max-width: 600px) {
+      .alphabet {
+        flex-wrap: wrap;
+        justify-content: space-around;
+      }
+
+      .letter {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        margin: 3px;
+      }
+
+      .word {
+        font-size: 1.5rem;
+        letter-spacing: 0.8rem;
+      }
+
+      #hangman {
+        width: 150px;
+        height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Hangman Game</h1>
+  <p id="instructions">Click "Start Game" to begin. Guess the word by tapping the letters below. You have 9 lives!</p>
+  <button id="start-button">Start Game</button>
+  <canvas id="hangman"></canvas>
+  <div id="lives"></div>
+  <div class="word" id="word"></div>
+  <div class="alphabet" id="alphabet" style="display: none;"></div>
+  <div id="message"></div>
+
+  <script>
+    const words = ["witch","pumpkin","vampire","frankenstien","monster","ghost","blood","dracula"];
+    const maxLives = 9;
+    let chosenWord, guessedWord, lives;
+    const hangmanCanvas = document.getElementById("hangman");
+    const ctx = hangmanCanvas.getContext("2d");
+    const wordDiv = document.getElementById("word");
+    const alphabetDiv = document.getElementById("alphabet");
+    const messageDiv = document.getElementById("message");
+    const startButton = document.getElementById("start-button");
+    const livesDiv = document.getElementById("lives");
+
+    // Dynamically set canvas dimensions for small screens
+    function scaleCanvas() {
+      const size = Math.min(window.innerWidth * 0.8, 200);
+      hangmanCanvas.width = size;
+      hangmanCanvas.height = size;
+    }
+    scaleCanvas();
+
+    const hangmanStages = [
+      () => {
+        ctx.beginPath();
+        ctx.moveTo(20, hangmanCanvas.height - 20); // Left base
+        ctx.lineTo(hangmanCanvas.width - 20, hangmanCanvas.height - 20); // Right base
+        ctx.stroke();
+      },
+      () => {
+        ctx.beginPath();
+        ctx.moveTo(50, hangmanCanvas.height - 20); // Base
+        ctx.lineTo(50, 20); // Top
+        ctx.stroke();
+      },
+      () => {
+        ctx.beginPath();
+        ctx.moveTo(50, 20); // Top of the post
+        ctx.lineTo(hangmanCanvas.width / 2, 20); // End of the beam
+        ctx.stroke();
+      },
+      () => {
+        ctx.beginPath();
+        ctx.moveTo(hangmanCanvas.width / 2, 20); // End of the beam
+        ctx.lineTo(hangmanCanvas.width / 2, 50); // End of the rope
+        ctx.stroke();
+      },
+      () => {
+        ctx.beginPath();
+        ctx.arc(hangmanCanvas.width / 2, 70, 20, 0, Math.PI * 2); // Head
+        ctx.stroke();
+      },
+      () => {
+        ctx.beginPath();
+        ctx.moveTo(hangmanCanvas.width / 2, 90); // Neck
+        ctx.lineTo(hangmanCanvas.width / 2, 150); // Waist
+        ctx.stroke();
+      },
+      () => {
+        ctx.beginPath();
+        ctx.moveTo(hangmanCanvas.width / 2, 100); // Shoulder
+        ctx.lineTo(hangmanCanvas.width / 2 - 30, 120); // Left hand
+        ctx.moveTo(hangmanCanvas.width / 2, 100); // Shoulder
+        ctx.lineTo(hangmanCanvas.width / 2 + 30, 120); // Right hand
+        ctx.stroke();
+      },
+      () => {
+        ctx.beginPath();
+        ctx.moveTo(hangmanCanvas.width / 2, 150); // Waist
+        ctx.lineTo(hangmanCanvas.width / 2 - 20, 200); // Left foot
+        ctx.moveTo(hangmanCanvas.width / 2, 150); // Waist
+        ctx.lineTo(hangmanCanvas.width / 2 + 20, 200); // Right foot
+        ctx.stroke();
+      },
+      () => {
+        ctx.beginPath();
+        ctx.strokeStyle = "red"; // Change the stroke color to red
+        ctx.lineWidth = 5; // Set the line thickness (adjust this value as needed)
+        ctx.moveTo(hangmanCanvas.width / 2 - 20, 90); // Left side of neck
+        ctx.lineTo(hangmanCanvas.width / 2 + 20, 90); // Right side of neck
+        ctx.stroke();
+        ctx.strokeStyle = "black"; // Reset stroke color back to black
+        ctx.lineWidth = 1; // Reset line width to default
+      }
+    ];
+
+    function updateWordDisplay() {
+      wordDiv.textContent = guessedWord.join(" ");
+    }
+
+    function updateLivesDisplay() {
+      livesDiv.textContent = `Lives Remaining: ${lives}`;
+    }
+
+    function drawHangman() {
+      if (lives < maxLives) hangmanStages[maxLives - lives - 1]();
+    }
+
+    function checkGameState() {
+      if (guessedWord.join("") === chosenWord) {
+        messageDiv.textContent = "Congratulations! You won!";
+        disableAlphabet();
+      } else if (lives === 0) {
+        messageDiv.textContent = `Game Over! The word was "${chosenWord}".`;
+        disableAlphabet();
+      }
+    }
+
+    let guessedLetters = new Set(); // Track guessed letters
+
+    // Unified function to handle guesses from either a letter click or key press
+    // Unified function to handle guesses from either a letter click or key press
+function handleGuessInput(letter) {
+  if (guessedLetters.has(letter)) {
+    return; // Ignore if the letter has already been guessed
+  }
+  
+  guessedLetters.add(letter); // Mark the letter as guessed
+
+  // Find the corresponding letter button in the alphabetDiv
+  const letterButton = Array.from(alphabetDiv.getElementsByClassName("letter"))
+                            .find(button => button.textContent === letter);
+
+  if (letterButton) {
+    // Add correct or wrong class for the visual effect
+    if (chosenWord.includes(letter)) {
+      letterButton.classList.add("correct");
+    } else {
+      letterButton.classList.add("wrong");
+    }
+    letterButton.disabled = true; // Disable the button after being clicked or typed
+  }
+
+  if (chosenWord.includes(letter)) {
+    chosenWord.split("").forEach((char, index) => {
+      if (char === letter) guessedWord[index] = char;
+    });
+    updateWordDisplay();
+  } else {
+    lives--;
+    updateLivesDisplay();
+    drawHangman();
+  }
+
+  checkGameState();
+}
+
+// Keyboard input handling
+document.addEventListener("keydown", function(event) {
+  const key = event.key.toUpperCase(); // Convert key to uppercase
+  if (key >= 'A' && key <= 'Z') { // Check if it's a letter
+    handleGuessInput(key); // Handle the guess input
+  }
+});
+
+    // Click input handling for letter buttons
+    function handleLetterClick(event) {
+      const letter = event.target.textContent;
+      event.target.classList.add(chosenWord.includes(letter) ? "correct" : "wrong");
+      event.target.disabled = true;
+      handleGuessInput(letter); // Process the letter clicked
+    }
+
+    function enableAlphabet() {
+      guessedLetters.clear(); // Reset guessed letters for a new game
+      alphabetDiv.innerHTML = "";
+      for (let letter = 65; letter <= 90; letter++) {
+        const button = document.createElement("button");
+        button.textContent = String.fromCharCode(letter);
+        button.classList.add("letter");
+        button.addEventListener("click", handleLetterClick);
+        alphabetDiv.appendChild(button);
+      }
+      alphabetDiv.style.display = "block";
+    }
+
+function startGame() {
+  messageDiv.textContent = "";
+  chosenWord = words[Math.floor(Math.random() * words.length)].toUpperCase();
+  guessedWord = Array(chosenWord.length).fill("_");
+  lives = maxLives;
+  updateWordDisplay();
+  updateLivesDisplay();
+  drawHangman();
+  enableAlphabet(); // Show alphabet letters
+}
+
+function disableAlphabet() {
+  const buttons = alphabetDiv.getElementsByClassName("letter");
+  Array.from(buttons).forEach(button => {
+    button.disabled = true;
+    button.classList.remove("correct", "wrong"); // Reset any class styles
+  });
+}
+
+    startButton.addEventListener("click", startGame);
+
+  </script>
+</body>
+</html>
