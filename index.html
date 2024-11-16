@@ -199,11 +199,27 @@
         ctx.beginPath();
         ctx.strokeStyle = "red"; // Change the stroke color to red
         ctx.lineWidth = 5; // Set the line thickness (adjust this value as needed)
-        ctx.moveTo(hangmanCanvas.width / 2 - 20, 90); // Left side of neck
-        ctx.lineTo(hangmanCanvas.width / 2 + 20, 90); // Right side of neck
+        ctx.moveTo(hangmanCanvas.width / 2 - 20, 93); // Left side of neck
+        ctx.lineTo(hangmanCanvas.width / 2 + 20, 93); // Right side of neck
         ctx.stroke();
         ctx.strokeStyle = "black"; // Reset stroke color back to black
         ctx.lineWidth = 1; // Reset line width to default
+        ctx.beginPath();
+    
+  // Left eye X
+  ctx.moveTo(hangmanCanvas.width / 2 - 15, 65); // Start of the left X
+  ctx.lineTo(hangmanCanvas.width / 2 - 5, 75); // Diagonal line 1
+  ctx.moveTo(hangmanCanvas.width / 2 - 5, 65); // Start of the left X
+  ctx.lineTo(hangmanCanvas.width / 2 - 15, 75); // Diagonal line 2
+  
+  // Right eye X
+  ctx.moveTo(hangmanCanvas.width / 2 + 5, 65); // Start of the right X
+  ctx.lineTo(hangmanCanvas.width / 2 + 15, 75); // Diagonal line 1
+  ctx.moveTo(hangmanCanvas.width / 2 + 15, 65); // Start of the right X
+  ctx.lineTo(hangmanCanvas.width / 2 + 5, 75); // Diagonal line 2
+    ctx.moveTo(hangmanCanvas.width / 2 - 10, 84); // Mouth (straight line)
+    ctx.lineTo(hangmanCanvas.width / 2 + 10, 84); // Draw the mouth
+    ctx.stroke();
       }
     ];
 
